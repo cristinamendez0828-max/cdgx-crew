@@ -1,0 +1,113 @@
+<!DOCTYPE html><html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CDGX Crew</title>
+<style>
+body{font-family:Arial;margin:0;background:#0d0d0d;color:#fff}
+header{background:linear-gradient(90deg,#8b0000,#ff0000);padding:25px;text-align:center;font-size:28px;font-weight:bold}
+nav{display:flex;justify-content:center;background:#1a1a1a;flex-wrap:wrap}
+nav a{color:white;padding:15px;text-decoration:none}
+nav a:hover{background:#ff0000}
+section{padding:40px 20px;text-align:center}
+.hero{position:relative;height:300px;overflow:hidden}
+.hero img{width:100%;height:100%;object-fit:cover}
+.fire-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(0deg,rgba(255,0,0,.4),rgba(255,140,0,.4));mix-blend-mode:screen;animation:fire 2s infinite alternate}
+@keyframes fire{0%{opacity:.4}100%{opacity:.7}}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}
+.card{background:#1a1a1a;padding:20px;border-radius:15px;box-shadow:0 0 10px rgba(255,0,0,.4)}
+.btn{background:#ff0000;color:#fff;padding:10px 20px;border:none;border-radius:10px;cursor:pointer}
+.stars span{cursor:pointer;font-size:20px}
+</style>
+</head>
+<body>
+<header>CDGX CREW</header>
+<nav>
+<a href="#">Inicio</a>
+<a href="#propuestas">Actividades</a>
+<a href="#reseñas">Reseñas</a>
+</nav>
+<div class="hero">
+<img src="cdgx.jpg">
+<div class="fire-overlay"></div>
+</div><section id="propuestas">
+<h2>📅 Actividades</h2>
+<input id="actividadInput" placeholder="Escribe actividad" style="padding:10px;width:60%"><br><br>
+<button class="btn" onclick="agregarActividad()">Agregar</button>
+<div id="listaActividades" class="grid"></div>
+</section><section id="reseñas">
+<h2>💬 Reseñas</h2>
+<input id="nombre" placeholder="Nombre" style="padding:10px;width:60%"><br><br>
+<textarea id="resena" placeholder="Tu reseña" style="width:60%;height:80px"></textarea><br><br>
+<div class="stars" id="stars"></div><br>
+<button class="btn" onclick="agregarResena()">Publicar</button>
+<div id="listaResenas" class="grid"></div>
+</section><script>
+let actividades = JSON.parse(localStorage.getItem('act')) || [];
+let resenas = JSON.parse(localStorage.getItem('res')) || [];
+let userVotes = JSON.parse(localStorage.getItem('votes')) || {};
+
+function guardar(){
+localStorage.setItem('act',JSON.stringify(actividades));
+localStorage.setItem('res',JSON.stringify(resenas));
+localStorage.setItem('votes',JSON.stringify(userVotes));
+}
+
+function agregarActividad(){
+let t=document.getElementById('actividadInput').value;
+if(!t||t.length<3)return alert('Evita spam');
+actividades.push({t,v:0});
+guardar();renderAct();
+}
+
+function votar(i){
+if(userVotes[i]) return alert('Ya votaste');
+actividades[i].v++;
+userVotes[i]=true;
+guardar();renderAct();
+}
+
+function renderAct(){
+let c=document.getElementById('listaActividades');c.innerHTML='';
+actividades.sort((a,b)=>b.v-a.v);
+actividades.forEach((a,i)=>{
+let d=document.createElement('div');d.className='card';
+d.innerHTML=`<p>${a.t}</p><button class="btn" onclick="votar(${i})">🔥 ${a.v}</button>`;
+c.appendChild(d);
+});
+}
+
+let rating=0;
+function renderStars(){
+let s=document.getElementById('stars');s.innerHTML='';
+for(let i=1;i<=5;i++){
+let star=document.createElement('span');
+star.innerHTML=i<=rating?'⭐':'☆';
+star.onclick=()=>{rating=i;renderStars()};
+s.appendChild(star);
+}
+}
+
+function agregarResena(){
+let n=document.getElementById('nombre').value;
+let r=document.getElementById('resena').value;
+if(!n||!r||r.length<5)return alert('Evita spam');
+resenas.push({n,r,rate:rating});
+guardar();renderRes();
+}
+
+function renderRes(){
+let c=document.getElementById('listaResenas');c.innerHTML='';
+resenas.forEach(x=>{
+let d=document.createElement('div');d.className='card';
+let stars='⭐'.repeat(x.rate);
+d.innerHTML=`<h3>${x.n}</h3><p>${x.r}</p><p>${stars}</p>`;
+c.appendChild(d);
+});
+}
+
+renderStars();
+renderAct();
+renderRes();
+</script></body>
+</html>
